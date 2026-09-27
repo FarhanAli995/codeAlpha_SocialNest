@@ -54,9 +54,12 @@
               <span class="avatar-fallback">{{ user.username|first|upper }}</span>
             {% endif %}
           </a>
-          <a href="{% url 'accounts:logout' %}" class="header-icon-btn" title="Log out">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-          </a>
+          <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="header-icon-btn" title="Log out">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </form>
         {% else %}
           <a href="{% url 'accounts:login' %}" class="btn btn--primary btn--sm">Log in</a>
         {% endif %}
