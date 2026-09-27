@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Register &bull; Social Nest{% endblock %}
+
+{% block header_search %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-hero">
+    <div class="auth-hero__logo"><i class="fa-solid fa-dove"></i></div>
+    <h1>Social<span>Nest</span></h1>
+    <p>Connect, share, and grow with your community</p>
+  </div>
+
+  <div class="auth-grid">
+    <div class="card auth-card" style="display:flex;flex-direction:column;justify-content:center;">
+      <h2>Login</h2>
+      <p class="auth-card__sub">Welcome back &mdash; please sign in to your account</p>
+      <a href="{% url 'accounts:login' %}" class="btn btn--outline btn--block"><i class="fa-solid fa-right-to-bracket"></i> Go to Login</a>
+      <p class="auth-card__foot">Don't have an account? <a href="{% url 'accounts:register' %}" class="link">Register now</a></p>
+    </div>
+
+    <div class="card auth-card">
+      <h2>Register</h2>
+      <p class="auth-card__sub">Create your account &mdash; it only takes a minute</p>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+          <label for="id_username">Full Name / Username</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user-plus"></i>
+            <input id="id_username" type="text" name="username" placeholder="Enter your full name" value="{{ form.username.value|default:'' }}" required autofocus>
+          </div>
+          {% if form.username.errors %}<div class="field__errors">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="id_email">Email</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-envelope"></i>
+            <input id="id_email" type="email" name="email" placeholder="you@example.com" value="{{ form.email.value|default:'' }}">
+          </div>
+          {% if form.email.errors %}<div class="field__errors">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="id_password1">Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input id="id_password1" type="password" name="password1" placeholder="Create a password" required>
+          </div>
+          {% if form.password1.errors %}<div class="field__errors">{{ form.password1.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="id_password2">Confirm Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input id="id_password2" type="password" name="password2" placeholder="Confirm your password" required>
+          </div>
+          {% if form.password2.errors %}<div class="field__errors">{{ form.password2.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="checkbox-row" style="justify-content:flex-start;">
+          <label><input type="checkbox" required> I agree to the <a href="#" class="link">Terms of Service</a> and <a href="#" class="link">Privacy Policy</a></label>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block">Create Account</button>
+      </form>
+
+      <p class="auth-card__foot">Already have an account? <a href="{% url 'accounts:login' %}" class="link">Log in</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

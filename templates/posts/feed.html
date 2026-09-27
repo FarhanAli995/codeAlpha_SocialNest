@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Feed &bull; Social Nest{% endblock %}
+
+{% block content %}
+<div class="feed-layout">
+  <div class="feed-main">
+
+    {% if user.is_authenticated %}
+    <form class="card composer" method="post" action="{% url 'posts:post_create' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="composer__top">
+        <div class="avatar avatar--sm">
+          {% if user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+          {% else %}
+            <span class="avatar-fallback">{{ user.username|first|upper }}</span>
+          {% endif %}
+        </div>
+        <input type="text" name="text" placeholder="What's on your nest today?" maxlength="280">
+      </div>
+      <div class="composer__actions">
+        <label class="composer__action" for="id_image"><i class="fa-regular fa-image"></i> Photo</label>
+        <input id="id_image" type="file" name="image" accept="image/*" class="visually-hidden">
+        <label class="composer__action" for="id_video"><i class="fa-solid fa-video"></i> Video</label>
+        <input id="id_video" type="file" name="video" accept="video/*" class="visually-hidden">
+        <button type="submit" class="btn btn--primary composer__submit"><i class="fa-regular fa-paper-plane"></i> Post</button>
+      </div>
+    </form>
+    {% endif %}
+
+    <div id="posts"></div>
+    {% if query %}
+      <p class="explore-note" style="margin:0 0 14px;">Showing results for &ldquo;<strong>{{ query }}</strong>&rdquo;</p>
+    {% endif %}
+    {% for post in posts %}
+      <article class="card post-card">
+        <div class="post-card__head">
+          <a href="{% url 'accounts:profile_detail' post.author.username %}" class="avatar avatar--sm">
+            {% if post.author.profile.avatar %}
+              <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}">
+            {% else %}
+              <span class="avatar-fallback">{{ post.author.username|first|upper }}</span>
+            {% endif %}
+          </a>
+          <div class="post-card__meta">
+            <a href="{% url 'accounts:profile_detail' post.author.username %}" class="post-card__author">{{ post.author.username }}</a>
+            <div class="post-card__time">{{ post.created_at|timesince }} ago</div>
+          </div>
+          <button class="menu-dot" type="button"><i class="fa-solid fa-ellipsis"></i></button>
+        </div>
+
+        {% if post.text %}
+          <div class="post-card__body">{{ post.text|linebreaksbr }}</div>
+        {% endif %}
+
+        {% if post.image %}
+          <a href="{% url 'posts:post_detail' post.pk %}" class="post-card__media"><img src="{{ post.image.url }}" alt="Post image"></a>
+        {% elif post.video %}
+          <div class="post-card__media"><video controls src="{{ post.video.url }}"></video></div>
+        {% endif %}
+
+        <div class="post-card__actions">
+          <form method="post" action="{% url 'posts:like_toggle' post.pk %}" class="inline-form">
+            {% csrf_token %}
+            <button type="submit" class="post-action {% if post.pk in liked_ids %}is-liked{% endif %}">
+              {% if post.pk in liked_ids %}<i class="fa-solid fa-heart"></i>{% else %}<i class="fa-regular fa-heart"></i>{% endif %}
+              <span>{{ post.likes_count }}</span>
+            </button>
+          </form>
+          <a href="{% url 'posts:post_detail' post.pk %}" class="post-action"><i class="fa-regular fa-comment"></i> <span>{{ post.comments_count }}</span></a>
+          <button type="button" class="post-action js-share" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'posts:post_detail' post.pk %}">
+            <i class="fa-solid fa-share-nodes"></i> <span>Share</span>
+          </button>
+        </div>
+      </article>
+    {% empty %}
+      <div class="card empty">
+        <i class="fa-regular fa-face-smile"></i>
+        <p>No posts yet. Be the first to share something!</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <aside class="sidebar">
+    <div class="card sidebar__card">
+      <div class="sidebar__title"><i class="fa-solid fa-arrow-trend-up"></i> Trending</div>
+      <div class="trending-item">
+        <div class="trending-item__tag">#DesignSystems</div>
+        <div class="trending-item__meta">1.2k posts &bull; Trending in Design</div>
+      </div>
+      <div class="trending-item">
+        <div class="trending-item__tag">#UrbanGardening</div>
+        <div class="trending-item__meta">842 posts &bull; Trending now</div>
+      </div>
+      <div class="trending-item">
+        <div class="trending-item__tag">#WebDevelopment</div>
+        <div class="trending-item__meta">2.4k posts &bull; Trending in Tech</div>
+      </div>
+    </div>
+
+    {% if suggested_users %}
+    <div class="card sidebar__card">
+      <div class="sidebar__title"><i class="fa-solid fa-user-group"></i> Contacts</div>
+      {% for u in suggested_users %}
+        <a href="{% url 'accounts:profile_detail' u.username %}" class="contact">
+          <span class="contact__avatar" style="background: var(--indigo);">
+            {% if u.profile.avatar %}<img src="{{ u.profile.avatar.url }}" alt="{{ u.username }}">{% else %}{{ u.username|first|upper }}{% endif %}
+          </span>
+          <span class="contact__name">{{ u.username }}</span>
+          <span class="contact__dot"></span>
+        </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.js-share').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = btn.dataset.url;
+      if (navigator.share) {
+        navigator.share({ url: url }).catch(function () {});
+      } else {
+        navigator.clipboard.writeText(url).then(function () {
+          var label = btn.querySelector('span');
+          if (label) { label.textContent = 'Copied!'; setTimeout(function () { label.textContent = 'Share'; }, 1500); }
+        });
+      }
+    });
+  });
+</script>
+{% endblock %}

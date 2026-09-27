@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Login &bull; Social Nest{% endblock %}
+
+{% block header_search %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-hero">
+    <div class="auth-hero__logo"><i class="fa-solid fa-dove"></i></div>
+    <h1>Social<span>Nest</span></h1>
+    <p>Connect, share, and grow with your community</p>
+  </div>
+
+  <div class="auth-grid">
+    <div class="card auth-card">
+      <h2>Login</h2>
+      <p class="auth-card__sub">Welcome back &mdash; please sign in to your account</p>
+
+      <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="field__errors" style="margin-bottom:12px;">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div class="field">
+          <label for="id_username">Email or Username</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user"></i>
+            <input id="id_username" type="text" name="username" placeholder="you@example.com" required autofocus>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="id_password">Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input id="id_password" type="password" name="password" placeholder="••••••••••••" required>
+            <i class="fa-regular fa-eye toggle-eye js-eye" data-target="id_password"></i>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <label><input type="checkbox" name="remember_me"> Remember me</label>
+          <a href="#" class="link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block">Login</button>
+      </form>
+
+      <p class="auth-card__foot">Don't have an account? <a href="{% url 'accounts:register' %}" class="link">Register now</a></p>
+    </div>
+
+    <div class="card auth-card" style="display:flex;flex-direction:column;justify-content:center;">
+      <h2>Register</h2>
+      <p class="auth-card__sub">Create your account &mdash; it only takes a minute</p>
+      <a href="{% url 'accounts:register' %}" class="btn btn--primary btn--block"><i class="fa-solid fa-user-plus"></i> Create Account</a>
+      <p class="auth-card__foot">Already have an account? <a href="{% url 'accounts:login' %}" class="link">Log in</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.js-eye').forEach(function (icon) {
+    icon.addEventListener('click', function () {
+      var input = document.getElementById(icon.dataset.target);
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+      icon.classList.toggle('fa-eye');
+      icon.classList.toggle('fa-eye-slash');
+    });
+  });
+</script>
+{% endblock %}

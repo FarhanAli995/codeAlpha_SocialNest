@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}New Post &bull; Social Nest{% endblock %}
+
+{% block content %}
+<div class="card form-page">
+  <h1 class="section-title">Create Post</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="field">
+      <label for="id_text">What's on your mind?</label>
+      <div class="input-wrap">
+        <textarea id="id_text" name="text" rows="4" maxlength="280" placeholder="Share something with your nest..." style="border:none;outline:none;flex:1;font-size:14px;font-family:inherit;resize:vertical;">{{ form.text.value|default:'' }}</textarea>
+      </div>
+      {% if form.text.errors %}<div class="field__errors">{{ form.text.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="field">
+      <label for="id_image">Photo</label>
+      <div class="input-wrap"><i class="fa-regular fa-image"></i><input id="id_image" type="file" name="image" accept="image/*"></div>
+    </div>
+
+    <div class="field">
+      <label for="id_video">Video</label>
+      <div class="input-wrap"><i class="fa-solid fa-video"></i><input id="id_video" type="file" name="video" accept="video/*"></div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <a href="{% url 'posts:feed' %}" class="btn btn--outline" style="flex:1;">Cancel</a>
+      <button type="submit" class="btn btn--primary" style="flex:1;"><i class="fa-regular fa-paper-plane"></i> Publish</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

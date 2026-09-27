@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Post Detail &bull; Social Nest{% endblock %}
+
+{% block content %}
+<div class="detail-layout">
+  <div>
+    <article class="card post-card">
+      <div class="post-card__head">
+        <a href="{% url 'accounts:profile_detail' post.author.username %}" class="avatar">
+          {% if post.author.profile.avatar %}
+            <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}">
+          {% else %}
+            <span class="avatar-fallback">{{ post.author.username|first|upper }}</span>
+          {% endif %}
+        </a>
+        <div class="post-card__meta">
+          <a href="{% url 'accounts:profile_detail' post.author.username %}" class="post-card__author">{{ post.author.username }}</a>
+          <div class="post-card__time">{{ post.created_at|timesince }} ago</div>
+        </div>
+        {% if post.author == user %}
+          <form method="post" action="{% url 'posts:post_delete' post.pk %}" onsubmit="return confirm('Delete this post?');">
+            {% csrf_token %}
+            <button type="submit" class="menu-dot" title="Delete"><i class="fa-regular fa-trash-can"></i></button>
+          </form>
+        {% else %}
+          <button class="menu-dot" type="button"><i class="fa-solid fa-ellipsis"></i></button>
+        {% endif %}
+      </div>
+
+      {% if post.text %}<div class="post-card__body">{{ post.text|linebreaksbr }}</div>{% endif %}
+      {% if post.image %}
+        <div class="post-card__media"><img src="{{ post.image.url }}" alt="Post image"></div>
+      {% elif post.video %}
+        <div class="post-card__media"><video controls src="{{ post.video.url }}"></video></div>
+      {% endif %}
+
+      <div class="post-card__actions">
+        <form method="post" action="{% url 'posts:like_toggle' post.pk %}" class="inline-form">
+          {% csrf_token %}
+          <button type="submit" class="post-action {% if liked %}is-liked{% endif %}">
+            {% if liked %}<i class="fa-solid fa-heart"></i>{% else %}<i class="fa-regular fa-heart"></i>{% endif %}
+            <span>{{ post.likes_count }} likes</span>
+          </button>
+        </form>
+        <span class="post-action"><i class="fa-regular fa-comment"></i> <span>{{ post.comments_count }}</span></span>
+        <button type="button" class="post-action js-share" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'posts:post_detail' post.pk %}">
+          <i class="fa-solid fa-share-nodes"></i>
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <aside class="card comments">
+    <div class="comments__title">Comments &middot; {{ post.comments_count }}</div>
+
+    {% for comment in comments %}
+      <div class="comment">
+        <a href="{% url 'accounts:profile_detail' comment.author.username %}" class="avatar avatar--sm">
+          {% if comment.author.profile.avatar %}
+            <img src="{{ comment.author.profile.avatar.url }}" alt="{{ comment.author.username }}">
+          {% else %}
+            <span class="avatar-fallback">{{ comment.author.username|first|upper }}</span>
+          {% endif %}
+        </a>
+        <div class="comment__body">
+          <div class="comment__head">
+            <a href="{% url 'accounts:profile_detail' comment.author.username %}" class="comment__author">{{ comment.author.username }}</a>
+            <span class="comment__time">{{ comment.created_at|timesince }} ago</span>
+          </div>
+          <div class="comment__text">{{ comment.text }}</div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="comment__text" style="padding:12px 0;">No comments yet. Start the conversation!</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+    <form class="comment-form" method="post" action="{% url 'posts:add_comment' post.pk %}">
+      {% csrf_token %}
+      <input type="text" name="text" placeholder="Add a comment..." maxlength="500" required>
+      <button type="submit" title="Send"><i class="fa-regular fa-paper-plane"></i></button>
+    </form>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  var shareBtn = document.querySelector('.js-share');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', function () {
+      var url = shareBtn.dataset.url;
+      if (navigator.share) { navigator.share({ url: url }).catch(function () {}); }
+      else { navigator.clipboard.writeText(url); }
+    });
+  }
+</script>
+{% endblock %}

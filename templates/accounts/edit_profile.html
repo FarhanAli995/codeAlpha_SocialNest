@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile &bull; Social Nest{% endblock %}
+
+{% block content %}
+<div class="card form-page">
+  <h1 class="section-title">Edit Profile</h1>
+
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="field__errors" style="margin-bottom:14px;">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    <div class="edit-cover">
+      {% if form.instance.cover_image %}<img src="{{ form.instance.cover_image.url }}" alt="Cover">{% endif %}
+      <label for="{{ form.cover_image.id_for_label }}" class="edit-cover__btn">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i> Upload Cover Photo
+      </label>
+      {{ form.cover_image }}
+      {% if form.cover_image.errors %}<div class="field__errors">{{ form.cover_image.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="edit-avatar-wrap">
+      <label for="{{ form.avatar.id_for_label }}" class="edit-avatar" title="Change profile picture">
+        <img id="avatar-preview"
+             src="{% if form.instance.avatar %}{{ form.instance.avatar.url }}{% endif %}"
+             alt="Profile picture"
+             class="{% if not form.instance.avatar %}is-hidden{% endif %}">
+        <span id="avatar-placeholder"
+              class="avatar-fallback"
+              style="font-size:32px;{% if form.instance.avatar %}display:none;{% endif %}">
+          {{ user.username|first|upper }}
+        </span>
+        <span class="edit-avatar__overlay"><i class="fa-solid fa-camera"></i></span>
+      </label>
+
+      <div class="edit-avatar__actions">
+        <label for="{{ form.avatar.id_for_label }}" class="btn btn--outline btn--sm">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i> Change Photo
+        </label>
+        {% if form.instance.avatar %}
+          <button type="button" class="btn btn--ghost btn--sm" id="avatar-remove">
+            <i class="fa-regular fa-trash-can"></i> Remove
+          </button>
+        {% endif %}
+      </div>
+
+      {{ form.avatar }}
+      <input type="hidden" name="avatar-clear" id="avatar-clear" value="">
+      <span class="edit-avatar__hint">JPG, PNG or GIF &bull; square images look best</span>
+      {% if form.avatar.errors %}<div class="field__errors">{{ form.avatar.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.bio.id_for_label }}">Bio</label>
+      <div class="input-wrap">
+        {{ form.bio }}
+      </div>
+      {% if form.bio.errors %}<div class="field__errors">{{ form.bio.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.location.id_for_label }}">Location</label>
+      <div class="input-wrap">
+        <i class="fa-solid fa-location-dot"></i>
+        {{ form.location }}
+      </div>
+      {% if form.location.errors %}<div class="field__errors">{{ form.location.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.website.id_for_label }}">Website</label>
+      <div class="input-wrap">
+        <i class="fa-solid fa-globe"></i>
+        {{ form.website }}
+      </div>
+      {% if form.website.errors %}<div class="field__errors">{{ form.website.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <a href="{% url 'accounts:own_profile' %}" class="btn btn--outline" style="flex:1;">Cancel</a>
+      <button type="submit" class="btn btn--primary" style="flex:1;">Save Changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    var input = document.getElementById('{{ form.avatar.id_for_label }}');
+    var preview = document.getElementById('avatar-preview');
+    var placeholder = document.getElementById('avatar-placeholder');
+    var removeBtn = document.getElementById('avatar-remove');
+    var clearFlag = document.getElementById('avatar-clear');
+    var objectUrl = null;
+
+    if (input && preview) {
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) { return; }
+        if (objectUrl) { URL.revokeObjectURL(objectUrl); }
+        objectUrl = URL.createObjectURL(file);
+        preview.src = objectUrl;
+        preview.classList.remove('is-hidden');
+        preview.style.display = '';
+        if (placeholder) { placeholder.style.display = 'none'; }
+        if (clearFlag) { clearFlag.value = ''; }
+      });
+    }
+
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function () {
+        if (input) { input.value = ''; }
+        if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+        if (preview) { preview.removeAttribute('src'); preview.style.display = 'none'; }
+        if (placeholder) { placeholder.style.display = 'grid'; }
+        if (clearFlag) { clearFlag.value = '1'; }
+      });
+    }
+  })();
+</script>
+{% endblock %}

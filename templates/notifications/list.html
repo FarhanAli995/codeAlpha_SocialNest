@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Notifications &bull; Social Nest{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;margin:0 auto;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <h1 class="section-title" style="margin-bottom:0;">Notifications</h1>
+    {% if unread_count %}
+      <form method="post" action="{% url 'notifications:mark_all_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--outline btn--sm"><i class="fa-regular fa-envelope-open"></i> Mark all read</button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="card" style="overflow:hidden;">
+    {% for n in notifications %}
+      <div class="notif {% if not n.is_read %}is-unread{% endif %}">
+        <span class="notif__icon notif__icon--{{ n.notif_type }}">
+          {% if n.notif_type == 'like' %}<i class="fa-solid fa-heart"></i>
+          {% elif n.notif_type == 'comment' %}<i class="fa-solid fa-comment"></i>
+          {% else %}<i class="fa-solid fa-user-plus"></i>{% endif %}
+        </span>
+        <div style="flex:1;">
+          <div class="notif__text">
+            <strong>{{ n.sender.username }}</strong>
+            {% if n.notif_type == 'like' %} liked your post.
+            {% elif n.notif_type == 'comment' %} commented on your post.
+            {% else %} started following you.{% endif %}
+            {% if n.post %} <a href="{% url 'posts:post_detail' n.post.pk %}" class="link">View post</a>{% endif %}
+          </div>
+          <div class="notif__time">{{ n.created_at|timesince }} ago</div>
+        </div>
+        {% if not n.is_read %}
+          <form method="post" action="{% url 'notifications:mark_read' n.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn--ghost btn--sm">Mark read</button>
+          </form>
+        {% endif %}
+      </div>
+    {% empty %}
+      <div class="empty">
+        <i class="fa-regular fa-bell"></i>
+        <p>No notifications yet.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

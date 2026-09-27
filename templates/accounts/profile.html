@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile_user.username }} &bull; Social Nest{% endblock %}
+
+{% block content %}
+<div class="card" style="overflow:hidden;">
+  <div class="profile-cover">
+    {% if profile.cover_image %}<img src="{{ profile.cover_image.url }}" alt="Cover">{% endif %}
+  </div>
+
+  <div class="profile-head">
+    <div class="profile-actions">
+      {% if is_own_profile %}
+        <a href="{% url 'accounts:edit_profile' %}" class="btn btn--outline"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</a>
+      {% else %}
+        <form method="post" action="{% url 'accounts:follow_toggle' profile_user.username %}" class="inline-form">
+          {% csrf_token %}
+          {% if is_following %}
+            <button type="submit" class="btn btn--outline"><i class="fa-solid fa-user-check"></i> Following</button>
+          {% else %}
+            <button type="submit" class="btn btn--primary"><i class="fa-solid fa-user-plus"></i> Follow</button>
+          {% endif %}
+        </form>
+      {% endif %}
+    </div>
+
+    <div class="profile-avatar">
+      {% if profile.avatar %}
+        <img src="{{ profile.avatar.url }}" alt="{{ profile_user.username }}"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='grid';">
+        <span class="avatar-fallback" style="font-size:40px;display:none;">{{ profile_user.username|first|upper }}</span>
+      {% else %}
+        <span class="avatar-fallback" style="font-size:40px;">{{ profile_user.username|first|upper }}</span>
+      {% endif %}
+    </div>
+
+    <h1 class="profile-name">{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+    <p class="profile-tagline">{{ profile.bio|default:'No bio yet.' }}</p>
+
+    <div class="profile-meta">
+      {% if profile.location %}
+        <span><i class="fa-solid fa-location-dot"></i> {{ profile.location }}</span>
+      {% endif %}
+      {% if profile.website %}
+        <span><i class="fa-solid fa-link"></i> <a href="{{ profile.website }}" target="_blank" rel="noopener" class="link">{{ profile.website|cut:'https://'|cut:'http://'|truncatechars:32 }}</a></span>
+      {% endif %}
+      <span><i class="fa-regular fa-calendar"></i> Joined {{ profile_user.date_joined|date:'F Y' }}</span>
+    </div>
+
+    <div class="profile-stats">
+      <div>
+        <div class="profile-stat__num">{{ posts|length }}</div>
+        <div class="profile-stat__label">Posts</div>
+      </div>
+      <div>
+        <div class="profile-stat__num">{{ profile_user.followers.count }}</div>
+        <div class="profile-stat__label">Followers</div>
+      </div>
+      <div>
+        <div class="profile-stat__num">{{ profile_user.following.count }}</div>
+        <div class="profile-stat__label">Following</div>
+      </div>
+    </div>
+
+    <div class="profile-tabs">
+      <a href="#" class="profile-tab is-active">Posts</a>
+      <a href="#" class="profile-tab">Media</a>
+      <a href="#" class="profile-tab">Likes</a>
+      <a href="#" class="profile-tab">About</a>
+    </div>
+  </div>
+</div>
+
+<div class="posts-grid">
+  {% for post in posts %}
+    <a href="{% url 'posts:post_detail' post.pk %}" class="card grid-card">
+      <div class="grid-card__media">
+        {% if post.image %}
+          <img src="{{ post.image.url }}" alt="Post">
+        {% else %}
+          <div class="grid-card__media--text">{{ post.text|truncatechars:70 }}</div>
+        {% endif %}
+      </div>
+      <div class="grid-card__title">{{ post.text|default:'Untitled post'|truncatechars:60 }}</div>
+      <div class="grid-card__stats">
+        <span><i class="fa-regular fa-heart"></i> {{ post.likes_count }}</span>
+        <span><i class="fa-regular fa-comment"></i> {{ post.comments_count }}</span>
+        <span><i class="fa-solid fa-share-nodes"></i> 1</span>
+      </div>
+    </a>
+  {% empty %}
+    <div class="card empty" style="grid-column:1/-1;">
+      <i class="fa-regular fa-images"></i>
+      <p>No posts to show yet.</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Explore &bull; Social Nest{% endblock %}
+
+{% block content %}
+<div class="explore-head">
+  <h1 class="section-title">Explore</h1>
+  <form class="explore-search" action="{% url 'posts:explore' %}" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" name="q" placeholder="Search posts, people, topics..." value="{{ query }}">
+  </form>
+</div>
+
+{% if query %}
+  <p class="explore-note">Showing results for &ldquo;<strong>{{ query }}</strong>&rdquo;</p>
+{% endif %}
+
+{% if people %}
+<section class="explore-section">
+  <h2 class="explore-subtitle"><i class="fa-solid fa-user-group"></i> People</h2>
+  <div class="people-grid">
+    {% for person in people %}
+      <a href="{% url 'accounts:profile_detail' person.username %}" class="card people-card">
+        <span class="people-card__avatar">
+          {% if person.profile.avatar %}
+            <img src="{{ person.profile.avatar.url }}" alt="{{ person.username }}">
+          {% else %}
+            <span class="avatar-fallback" style="font-size:22px;">{{ person.username|first|upper }}</span>
+          {% endif %}
+        </span>
+        <span class="people-card__name">{{ person.get_full_name|default:person.username }}</span>
+        <span class="people-card__handle">@{{ person.username }}</span>
+        {% if person.profile.bio %}
+          <span class="people-card__bio">{{ person.profile.bio|truncatechars:60 }}</span>
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="explore-section">
+  <h2 class="explore-subtitle"><i class="fa-solid fa-compass"></i> Posts</h2>
+  <div class="explore-posts">
+    {% for post in posts %}
+      <article class="card explore-post">
+        <div class="post-card__head">
+          <a href="{% url 'accounts:profile_detail' post.author.username %}" class="avatar avatar--sm">
+            {% if post.author.profile.avatar %}
+              <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}">
+            {% else %}
+              <span class="avatar-fallback">{{ post.author.username|first|upper }}</span>
+            {% endif %}
+          </a>
+          <div class="post-card__meta">
+            <a href="{% url 'accounts:profile_detail' post.author.username %}" class="post-card__author">{{ post.author.username }}</a>
+            <div class="post-card__time">{{ post.created_at|timesince }} ago</div>
+          </div>
+        </div>
+
+        {% if post.text %}
+          <div class="explore-post__body">{{ post.text|linebreaksbr }}</div>
+        {% endif %}
+
+        <div class="explore-post__media">
+          {% if post.image %}
+            <a href="{% url 'posts:post_detail' post.pk %}" class="explore-post__media-link">
+              <img src="{{ post.image.url }}" alt="Post image">
+            </a>
+          {% elif post.video %}
+            <video controls src="{{ post.video.url }}"></video>
+          {% else %}
+            <a href="{% url 'posts:post_detail' post.pk %}" class="explore-post__placeholder">
+              <i class="fa-regular fa-image"></i>
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="post-card__actions">
+          <form method="post" action="{% url 'posts:like_toggle' post.pk %}" class="inline-form">
+            {% csrf_token %}
+            <button type="submit" class="post-action {% if post.pk in liked_ids %}is-liked{% endif %}">
+              {% if post.pk in liked_ids %}<i class="fa-solid fa-heart"></i>{% else %}<i class="fa-regular fa-heart"></i>{% endif %}
+              <span>{{ post.likes_count }}</span>
+            </button>
+          </form>
+          <a href="{% url 'posts:post_detail' post.pk %}" class="post-action"><i class="fa-regular fa-comment"></i> <span>{{ post.comments_count }}</span></a>
+        </div>
+      </article>
+    {% empty %}
+      <div class="card empty">
+        <i class="fa-regular fa-compass"></i>
+        <p>{% if query %}No posts match your search.{% else %}No posts to explore yet.{% endif %}</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

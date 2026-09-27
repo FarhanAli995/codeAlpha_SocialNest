@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Social Nest{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="{% url 'posts:feed' %}" class="brand">
+        <span class="brand__logo">
+          <i class="fa-solid fa-dove"></i>
+        </span>
+        <span class="brand__name">Social<span>Nest</span></span>
+      </a>
+
+      {% block header_search %}
+      <form class="header-search" action="{% url 'posts:explore' %}" method="get">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" name="q" placeholder="Search posts, people, topics..." value="{{ request.GET.q|default:'' }}">
+      </form>
+      {% endblock %}
+
+      <nav class="header-nav">
+        <a href="{% url 'posts:feed' %}" class="header-nav__link {% if request.resolver_match.url_name == 'feed' %}is-active{% endif %}">
+          <i class="fa-solid fa-house"></i><span>Home</span>
+        </a>
+        <a href="{% url 'posts:feed' %}#posts" class="header-nav__link">
+          <i class="fa-solid fa-table-cells-large"></i><span>Feed</span>
+        </a>
+        <a href="{% url 'notifications:list' %}" class="header-nav__link {% if 'notifications' in request.path %}is-active{% endif %}">
+          <i class="fa-regular fa-bell"></i><span>Notifications</span>
+          {% if unread_notifications_count %}<span class="badge">{{ unread_notifications_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'posts:explore' %}" class="header-nav__link {% if request.resolver_match.url_name == 'explore' %}is-active{% endif %}">
+          <i class="fa-regular fa-compass"></i><span>Explore</span>
+        </a>
+
+        {% if user.is_authenticated %}
+          <a href="{% url 'accounts:own_profile' %}" class="header-avatar" title="{{ user.username }}">
+            {% if user.profile.avatar %}
+              <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+            {% else %}
+              <span class="avatar-fallback">{{ user.username|first|upper }}</span>
+            {% endif %}
+          </a>
+          <a href="{% url 'accounts:logout' %}" class="header-icon-btn" title="Log out">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn--primary btn--sm">Log in</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="flash-wrap">
+      {% for message in messages %}
+        <div class="flash flash--{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2024 Social Nest &bull; Help Center &bull; Privacy Policy &bull; Terms of Service</p>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
